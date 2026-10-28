@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthcare Analytics — Doctor Visits</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    background: #0d0d0d; color: #f0efec;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0; padding: 24px; line-height: 1.5;
+  }
+  h1 { font-size: 28px; margin: 0 0 6px 0; letter-spacing: -0.4px; }
+  h2 { font-size: 18px; margin: 26px 0 10px 0; color: #c3c2b7; }
+  h3 { font-size: 15px; margin: 0 0 6px 0; color: #f0efec; }
+  .sub { font-size: 12.5px; color: #898781; margin: 0 0 12px 0; }
+  p { color: #c3c2b7; font-size: 14px; }
+  .intro { max-width: 760px; margin-bottom: 22px; }
+  .tiles { display: flex; gap: 14px; margin: 18px 0; flex-wrap: wrap; }
+  .tile {
+    background: #1a1a19; border: 1px solid #2c2c2a; border-radius: 8px;
+    padding: 14px 16px; min-width: 150px; flex: 1;
+  }
+  .tile-lead { border-color: #2a78d6; }
+  .tile .label { font-size: 12px; color: #898781; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+  .tile .kicker { font-size: 10px; color: #3987e5; margin-left: 6px; }
+  .tile .value { font-size: 22px; font-variant-numeric: tabular-nums; color: #f0efec; }
+  .card {
+    background: #1a1a19; border: 1px solid #2c2c2a; border-radius: 10px;
+    padding: 16px; margin-bottom: 20px;
+  }
+  canvas { background: transparent; display: block; margin: 0 auto; }
+  .table-wrap { overflow: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  th { background: #2c2c2a; color: #c3c2b7; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #2c2c2a; color: #c3c2b7; }
+  tr:hover td { background: #242423; }
+  .kicker-note { font-size: 12.5px; color: #898781; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Healthcare Analytics for Doctor Visits</h1>
+<p class="intro">Student-Friendly Dataset Understanding Guide — understand the dataset before beginning data analysis.
+This dashboard explores what drives doctor visits by comparing age, health condition, illness, income, chronic
+conditions, and healthcare support against the number of visits.</p>
+
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="label">Total records</div>
+        <div class="value">5,190</div>
+      </div>
+      <div class="tile">
+        <div class="label">Total doctor visits</div>
+        <div class="value">24,207</div>
+      </div>
+      <div class="tile tile-lead">
+        <div class="label">Avg visits per patient <span class="kicker">(lead figure)</span></div>
+        <div class="value">4.66</div>
+      </div>
+      <div class="tile">
+        <div class="label">Patients with chronic condition</div>
+        <div class="value">0.0%</div>
+      </div>
+    </div>
+    
+
+<h2>1. Dataset Overview</h2>
+<p>This dataset contains information about people, their health conditions, healthcare support, and the number
+of times they visited a doctor. The purpose is to explore patterns and understand which factors may be
+associated with more (or fewer) doctor visits. Records: <b>5190</b>, columns: <b>13</b>.</p>
+
+<h2>2. Main Objective</h2>
+<p>The main objective is to analyze patient-related information and identify useful patterns in doctor visits.
+Patients can compare age, health condition, illness, income, chronic conditions, and healthcare support with
+the number of visits.</p>
+
+<h2>3. Column Definitions</h2>
+<ul>
+<li><b>visits</b> — number of times the person visited a doctor during the recorded period (target measure).</li>
+<li><b>gender</b> — female / male (Personal Information).</li>
+<li><b>age</b> — age of the person (Personal Information).</li>
+<li><b>income</b> — income level (Financial Information).</li>
+<li><b>illness</b> — illness count/severity (Health Information).</li>
+<li><b>reduced</b> — reduced health flag (Health Information).</li>
+<li><b>health</b> — general health status (Health Information).</li>
+<li><b>private</b> — yes/no, private healthcare cover (Healthcare Support).</li>
+<li><b>freepoor</b> — yes/no, free/poor support (Healthcare Support).</li>
+<li><b>freerepat</b> — yes/no, free repatriation support (Healthcare Support).</li>
+<li><b>nchronic</b> / <b>lchronic</b> — yes/no chronic condition flags (Health Information).</li>
+<li><b>id</b> — record identifier (Record Identification).</li>
+</ul>
+
+<h2>4. Grouping the Columns</h2>
+<ul>
+<li><b>Personal Information:</b> gender, age</li>
+<li><b>Health Information:</b> illness, reduced, health, nchronic, lchronic</li>
+<li><b>Healthcare Support:</b> private, freepoor, freerepat</li>
+<li><b>Doctor Visit Information:</b> visits</li>
+<li><b>Record Identification:</b> id</li>
+</ul>
+
+<h2>5. Simple Meaning of Healthcare Analytics</h2>
+<p>Healthcare analytics means studying healthcare-related data to find useful patterns and support better
+understanding and decision-making. Key learning outcome: patterns emerge when you compare patient attributes
+against visit counts.</p>
+
+<h2>Patterns — Visits by Grouping</h2>
+
+<section class="card">
+  <h3>Avg visits by gender</h3>
+  <p class="sub">Personal Information — does gender shape visit frequency?</p>
+  <canvas id="ch-hbar-5104766136440301365" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-5104766136440301365");
+      const ctx = c.getContext("2d");
+      const labels = ['female', 'male'];
+      const values = [4.72, 4.61];
+      const counts = [2621, 2569];
+      const colors = ['#2a78d6', '#eb6834'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits by age band</h3>
+  <p class="sub">Personal Information — visits across the age spectrum.</p>
+  <canvas id="ch-bar-603853114768689554" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-bar-603853114768689554");
+      const ctx = c.getContext("2d");
+      const labels = ['18.00-32.20', '32.20-46.40', '46.40-60.60', '60.60-74.80', '74.80-89.00'];
+      const values = [2.89, 3.75, 4.46, 5.29, 6.24];
+      const counts = [705, 960, 1274, 1214, 1037];
+      const colors = ['#cde2fb', '#9ec5f4', '#4a90e2', '#2a78d6', '#1c5cab'];
+      const kind = "bar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits by income band</h3>
+  <p class="sub">Financial Information — visits across income bands.</p>
+  <canvas id="ch-bar-8610404301912438478" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-bar-8610404301912438478");
+      const ctx = c.getContext("2d");
+      const labels = ['8000.00-43742.60', '43742.60-79485.20', '79485.20-115227.80', '115227.80-150970.40', '150970.40-186713.00'];
+      const values = [3.9, 4.28, 4.93, 5.09, 5.21];
+      const counts = [272, 1916, 2192, 739, 71];
+      const colors = ['#cde2fb', '#9ec5f4', '#4a90e2', '#2a78d6', '#1c5cab'];
+      const kind = "bar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits by illness count</h3>
+  <p class="sub">Health Information — more illness, more visits?</p>
+  <canvas id="ch-hbar-3945588917583223935" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-3945588917583223935");
+      const ctx = c.getContext("2d");
+      const labels = ['8', '9', '7', '6', '5', '4', '3', '2', '1', '0'];
+      const values = [8.0, 7.4, 7.06, 6.64, 5.86, 4.98, 4.25, 3.41, 2.64, 2.17];
+      const counts = [30, 5, 169, 454, 787, 1169, 1202, 818, 400, 156];
+      const colors = ['#0d366b', '#0d366b', '#0d366b', '#0d366b', '#0d366b', '#1c5cab', '#2a78d6', '#4a90e2', '#9ec5f4', '#cde2fb'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits: chronic condition (nchronic)</h3>
+  <p class="sub">Health Information — chronic condition vs visits.</p>
+  <canvas id="ch-hbar-1844502068282104429" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-1844502068282104429");
+      const ctx = c.getContext("2d");
+      const labels = ['Yes', 'No'];
+      const values = [0, 4.66];
+      const counts = [0, 5190];
+      const colors = ['#2a78d6', '#eb6834'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits: private cover</h3>
+  <p class="sub">Healthcare Support — private insurance vs visits.</p>
+  <canvas id="ch-hbar-1647300577125914925" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-1647300577125914925");
+      const ctx = c.getContext("2d");
+      const labels = ['Yes', 'No'];
+      const values = [4.58, 4.71];
+      const counts = [1920, 3270];
+      const colors = ['#2a78d6', '#eb6834'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits: free/poor support</h3>
+  <p class="sub">Healthcare Support — free/poor support vs visits.</p>
+  <canvas id="ch-hbar-5709732638759077897" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-5709732638759077897");
+      const ctx = c.getContext("2d");
+      const labels = ['Yes', 'No'];
+      const values = [5.06, 4.59];
+      const counts = [862, 4328];
+      const colors = ['#2a78d6', '#eb6834'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+<section class="card">
+  <h3>Avg visits: free repatriation</h3>
+  <p class="sub">Healthcare Support — free repatriation vs visits.</p>
+  <canvas id="ch-hbar-3730231910143282886" width="700" height="360"></canvas>
+  <script>
+    (function(){
+      const c = document.getElementById("ch-hbar-3730231910143282886");
+      const ctx = c.getContext("2d");
+      const labels = ['Yes', 'No'];
+      const values = [4.42, 4.67];
+      const counts = [157, 5033];
+      const colors = ['#2a78d6', '#eb6834'];
+      const kind = "hbar";
+      const maxV = Math.max(...values) || 1;
+      const pad = 56, rightPad = 40, topPad = 30, bottomPad = 44;
+      const plotW = c.width - pad - rightPad;
+      const plotH = c.height - topPad - bottomPad;
+      const barW = kind === "hbar" ? (plotH / labels.length) * 0.62 : plotW / labels.length * 0.62;
+
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#898781";
+      ctx.font = "12px system-ui";
+
+      // gridlines + axis (hairline, recessive)
+      for (let i = 0; i <= 5; i++) {
+        const y = topPad + (plotH * (1 - i / 5));
+        ctx.strokeStyle = "#e1e0d9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(c.width - rightPad, y); ctx.stroke();
+        const v = (maxV * i / 5);
+        ctx.fillText(v.toFixed(1), pad - 8, y);
+      }
+      ctx.strokeStyle = "#c3c2b7"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, topPad); ctx.lineTo(pad, topPad + plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, topPad + plotH); ctx.lineTo(c.width - rightPad, topPad + plotH); ctx.stroke();
+
+      // bars
+      labels.forEach((lab, i) => {
+        const h = (values[i] / maxV) * plotH;
+        const x = pad + (plotW / labels.length) * i + (plotW / labels.length - barW) / 2;
+        const y = topPad + plotH - h;
+        ctx.fillStyle = colors[i];
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, h, 4);  // 4px rounded data-end, square baseline handled below
+        ctx.fill();
+        // square baseline (cover the rounded bottom)
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y + h - 4, barW, 4);
+        // value label (selective: only on bars tall enough / or the max)
+        if (h > 26) {
+          ctx.fillStyle = "#0b0b0b"; ctx.textAlign = "center"; ctx.font = "11px system-ui";
+          ctx.fillText(values[i].toFixed(1), x + barW / 2, y - 8);
+        }
+        // category label
+        ctx.fillStyle = "#52514e"; ctx.textAlign = "center"; ctx.font = "12px system-ui";
+        ctx.fillText(lab, x + barW / 2, topPad + plotH + 18);
+      });
+      ctx.textAlign = "start"; ctx.fillStyle = "#898781"; ctx.font = "12px system-ui";
+      ctx.fillText("", pad + plotW / 2, c.height - 8);
+      ctx.save(); ctx.translate(16, c.height / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Avg visits", 0, 0); ctx.restore();
+    })();
+  </script>
+</section>
+
+
+
+
+<p class="kicker-note">Chart style notes (per design method): dark mode selected; categorical hues in fixed
+order (blue/orange/…), sequential magnitude in single-hue blue ramps; thin marks with hairline gridlines;
+legend present where two or more series appear; direct labels shown selectively; tooltips enhance but never
+gate a value — the table view carries every number without hovering.</p>
+
+</body>
+</html>

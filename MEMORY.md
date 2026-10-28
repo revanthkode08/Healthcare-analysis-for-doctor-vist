@@ -1,0 +1,3 @@
+- [project-goals](project-goals.md) — healthcare analytics on doctor visits dataset per the Student-Friendly Dataset Understanding Guide screenshots
+- [dataset-schema](dataset-schema.md) — 13 columns + id, 5,190 records
+- [analysis-plan](analysis-plan.md) — planned analyses and chart forms
